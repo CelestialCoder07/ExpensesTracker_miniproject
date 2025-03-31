@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>expenses.io | Personal Finance Dashboard</title>
+  <style>
+    /* Color Palette */
+    :root {
+      --primary-green: #4CAF50;
+      --light-green: #E8F5E9;
+      --dark-green: #2E7D32;
+      --gold: #FFD700;
+      --light-gold: #FFF9C4;
+      --beige: #F5F5DC;
+      --white: #FFFFFF;
+      --black: #212121;
+      --gray: #757575;
+      --light-gray: #EEEEEE;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background-color: var(--beige);
+      color: var(--black);
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 4fr;
+    }
+
+    /* Header with animation */
+    header {
+      grid-column: 1 / -1;
+      background: linear-gradient(135deg, var(--primary-green), var(--dark-green));
+      color: white;
+      padding: 1.5rem;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::after {
+      content: "";
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(
+        to bottom right,
+        rgba(255,255,255,0) 0%,
+        rgba(255,255,255,0.1) 50%,
+        rgba(255,255,255,0) 100%
+      );
+    }
+
+    @keyframes shine {
+      0% { transform: translate(-50%, -50%) rotate(0deg); }
+      100% { transform: translate(50%, 50%) rotate(360deg); }
+    }
+
+    .logo {
+      font-size: 1.8rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .logo span {
+      color: var(--gold);
+      margin-left: 0.5rem;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+
+    /* Sidebar with hover effects */
+    .sidebar {
+      background-color: var(--white);
+      padding: 2rem 1rem;
+      height: calc(100vh - 80px);
+      border-right: 1px solid var(--light-gray);
+    }
+
+    .sidebar-menu {
+      list-style: none;
+    }
+
+    .sidebar-menu li {
+      margin-bottom: 1.5rem;
+      transition: transform 0.3s ease;
+    }
+
+    .sidebar-menu li:hover {
+      transform: translateX(5px);
+    }
+
+    .sidebar-menu a {
+      text-decoration: none;
+      color: var(--gray);
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      padding: 0.5rem;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .sidebar-menu a:hover {
+      background-color: var(--light-green);
+      color: var(--primary-green);
+      box-shadow: 3px 3px 0 var(--primary-green);
+    }
+
+    .sidebar-menu a.active {
+      background-color: var(--light-green);
+      color: var(--primary-green);
+      font-weight: 600;
+      transform: translateX(5px);
+    }
+
+    .sidebar-menu i {
+      margin-right: 0.8rem;
+      font-size: 1.2rem;
+      transition: transform 0.3s ease;
+    }
+
+    .sidebar-menu a:hover i {
+      transform: scale(1.2);
+    }
+
+    /* Main Content */
+    .main-content {
+      padding: 2rem;
+    }
+
+    .page-title {
+      font-size: 2rem;
+      margin-bottom: 2rem;
+      color: var(--dark-green);
+      display: flex;
+      align-items: center;
+      position: relative;
+    }
+
+    .page-title i {
+      margin-right: 1rem;
+      color: var(--gold);
+      animation: bounce 2s infinite;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    /* Dashboard Cards with hover animations */
+    .dashboard-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .card {
+      background-color: var(--white);
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 5px;
+      background: linear-gradient(90deg, var(--primary-green), var(--gold));
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.3s ease;
+    }
+
+    .card:hover::before {
+      transform: scaleX(1);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .card-title {
+      font-size: 1rem;
+      color: var(--gray);
+    }
+
+    .card-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: var(--light-green);
+      color: var(--primary-green);
+      transition: all 0.3s ease;
+    }
+
+    .card:hover .card-icon {
+      transform: rotate(15deg);
+      background-color: var(--primary-green);
+      color: white;
+    }
+
+    .card-value {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--black);
+      margin-bottom: 0.5rem;
+      transition: all 0.3s ease;
+    }
+
+    .card:hover .card-value {
+      color: var(--dark-green);
+    }
+
+    .card-change {
+      font-size: 0.9rem;
+      color: var(--primary-green);
+      display: flex;
+      align-items: center;
+    }
+
+    /* Expenses Table with row animations */
+    .expenses-table {
+      width: 100%;
+      background-color: var(--white);
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      overflow: hidden;
+      border-collapse: collapse;
+    }
+
+    .expenses-table thead {
+      background-color: var(--light-green);
+      color: var(--dark-green);
+    }
+
+    .expenses-table th {
+      padding: 1rem;
+      text-align: left;
+      font-weight: 600;
+    }
+
+    .expenses-table td {
+      padding: 1rem;
+      border-bottom: 1px solid var(--light-gray);
+      transition: all 0.3s ease;
+    }
+
+    .expenses-table tr {
+      transition: all 0.3s ease;
+    }
+
+    .expenses-table tr:hover {
+      background-color: var(--light-green);
+    }
+
+    .expenses-table tr:hover td {
+      transform: translateX(5px);
+    }
+
+    .expenses-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .category-cell {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .emoji-selector {
+      width: 30px;
+      height: 30px;
+      font-size: 1.2rem;
+      text-align: center;
+      border-radius: 50%;
+      background-color: var(--light-gray);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .emoji-selector:hover {
+      transform: scale(1.2) rotate(15deg);
+      background-color: var(--primary-green);
+      color: white;
+    }
+
+    .editable {
+      cursor: pointer;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      transition: all 0.2s;
+    }
+
+    .editable:hover {
+      background-color: var(--light-gold);
+      transform: scale(1.05);
+    }
+
+    .progress-bar {
+      height: 8px;
+      background-color: var(--light-gray);
+      border-radius: 4px;
+      overflow: hidden;
+      transition: all 0.5s ease;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background-color: var(--primary-green);
+      border-radius: 4px;
+      transition: width 0.5s ease;
+    }
+
+    /* Add Expense Button with animation */
+    .add-expense {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 1.5rem;
+    }
+
+    .add-btn {
+      background-color: var(--primary-green);
+      color: white;
+      border: none;
+      padding: 0.8rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .add-btn:hover {
+      background-color: var(--dark-green);
+      transform: translateY(-3px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .add-btn:active {
+      transform: translateY(0);
+    }
+
+    .add-btn::after {
+      content: "";
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(
+        to bottom right,
+        rgba(255,255,255,0) 0%,
+        rgba(255,255,255,0.3) 50%,
+        rgba(255,255,255,0) 100%
+      );
+      transform: rotate(30deg);
+      transition: all 0.3s;
+    }
+
+    .add-btn:hover::after {
+      left: 100%;
+      top: 100%;
+    }
+
+    /* Budget Rule Section with hover effects */
+    .budget-rule {
+      background-color: var(--white);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-top: 2rem;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      transition: all 0.3s ease;
+    }
+
+    .budget-rule:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+
+    .budget-rule h2 {
+      color: var(--dark-green);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+    }
+
+    .budget-rule h2 i {
+      margin-right: 0.8rem;
+      color: var(--gold);
+    }
+
+    .budget-rule-content {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+
+    .rule-category {
+      background-color: var(--light-green);
+      padding: 1rem;
+      border-radius: 8px;
+      border-left: 4px solid var(--primary-green);
+      transition: all 0.3s ease;
+    }
+
+    .rule-category:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .rule-category.needs {
+      border-left-color: var(--primary-green);
+    }
+
+    .rule-category.wants {
+      border-left-color: var(--gold);
+    }
+
+    .rule-category.savings {
+      border-left-color: #2196F3;
+    }
+
+    /* Modal animations */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .modal-content {
+      background-color: var(--white);
+      padding: 2rem;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1024px) {
+      body {
+        grid-template-columns: 1fr;
+      }
+      
+      .sidebar {
+        display: none;
+      }
+      
+      .dashboard-cards {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .budget-rule-content {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .dashboard-cards {
+        grid-template-columns: 1fr;
+      }
+      
+      .expenses-table {
+        display: block;
+        overflow-x: auto;
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <header>
+      <div class="logo">
+        expenses<span>.io</span>
+      </div>
+    </header>
+  
+    <aside class="sidebar">
+      <ul class="sidebar-menu">
+        <li><a href="#" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+        <li><a href="#"><i class="fas fa-wallet"></i> Expenses</a></li>
+        <li><a href="#"><i class="fas fa-chart-pie"></i> Reports</a></li>
+        <li><a href="#"><i class="fas fa-piggy-bank"></i> Savings</a></li>
+        <li><a href="#"><i class="fas fa-cog"></i> Settings</a></li>
+      </ul>
+    </aside>
+  
+    <main class="main-content">
+      <h1 class="page-title">
+        <i class="fas fa-coins"></i> Finance Tracker
+      </h1>
+  
+      <div class="dashboard-cards">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Monthly Budget</h3>
+            <div class="card-icon">
+              <i class="fas fa-wallet"></i>
+            </div>
+          </div>
+          <p class="card-value" id="total-budget">$0</p>
+          <p class="card-change">
+            <i class="fas fa-arrow-up"></i> <span id="budget-change">0%</span> from last month
+          </p>
+        </div>
+  
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Total Spending</h3>
+            <div class="card-icon">
+              <i class="fas fa-shopping-cart"></i>
+            </div>
+          </div>
+          <p class="card-value" id="total-spending">$0</p>
+          <p class="card-change">
+            <i class="fas fa-arrow-down"></i> <span id="spending-change">0%</span> from last month
+          </p>
+        </div>
+  
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Savings</h3>
+            <div class="card-icon">
+              <i class="fas fa-piggy-bank"></i>
+            </div>
+          </div>
+          <p class="card-value" id="total-savings">$0</p>
+          <p class="card-change">
+            <i class="fas fa-arrow-up"></i> <span id="savings-change">0%</span> from last month
+          </p>
+        </div>
+      </div>
+  
+      <table class="expenses-table">
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Type</th>
+            <th>Monthly Budget</th>
+            <th>Spending</th>
+            <th>Remaining</th>
+            <th>Overview</th>
+          </tr>
+        </thead>
+        <tbody id="expenses-body">
+          <!-- Expenses will be added here dynamically -->
+        </tbody>
+      </table>
+  
+      <div class="add-expense">
+        <button class="add-btn" id="add-expense-btn">
+          <i class="fas fa-plus"></i> Add Expense
+        </button>
+      </div>
+  
+      <div class="budget-rule">
+        <h2>
+          <i class="fas fa-percentage"></i> 50/30/20 Budget Rule
+        </h2>
+        <div class="budget-rule-content">
+          <div class="rule-category needs">
+            <h3>Needs (50%)</h3>
+            <p>Essential expenses like housing, food, utilities</p>
+            <div class="amount" id="needs-amount">$0</div>
+          </div>
+          <div class="rule-category wants">
+            <h3>Wants (30%)</h3>
+            <p>Non-essential spending like dining out, entertainment</p>
+            <div class="amount" id="wants-amount">$0</div>
+          </div>
+          <div class="rule-category savings">
+            <h3>Savings (20%)</h3>
+            <p>Savings, investments, and debt repayment</p>
+            <div class="amount" id="savings-amount">$0</div>
+          </div>
+        </div>
+      </div>
+    </main>
+  
+    <!-- Add/Edit Expense Modal -->
+    <div class="modal" id="expense-modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="modal-title">Add New Expense</h2>
+          <button class="close-modal" id="close-modal">&times;</button>
+        </div>
+        <form id="expense-form">
+          <input type="hidden" id="edit-index">
+          <div class="form-group">
+            <label for="expense-emoji">Category Icon</label>
+            <div class="emoji-selector" id="emoji-preview">🍔</div>
+            <div class="emoji-picker" id="emoji-picker">
+              <!-- Emojis will be added here dynamically -->
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="expense-type">Expense Type</label>
+            <input type="text" id="expense-type" class="form-control" placeholder="e.g. Food, Transport" required>
+          </div>
+          <div class="form-group">
+            <label for="expense-budget">Monthly Budget ($)</label>
+            <input type="number" id="expense-budget" class="form-control" placeholder="500" required>
+          </div>
+          <div class="form-group">
+            <label for="expense-spending">Current Spending ($)</label>
+            <input type="number" id="expense-spending" class="form-control" placeholder="350" required>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" id="cancel-btn">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  
+    <script>
+      // Sample emojis for categories
+      const categoryEmojis = ['🍔', '🚗', '🏠', '👕', '💡', '🎓', '✈️', '🏥', '🎮', '🍿', '🛒', '📱'];
+      
+      // Sample initial expenses data
+      let expenses = [
+        { emoji: '🍔', type: 'Food', budget: 0, spending: 0, category: 'needs' },
+        { emoji: '🚗', type: 'Transport', budget: 0, spending: 0, category: 'needs' },
+        { emoji: '🏠', type: 'Housing', budget: 0, spending: 0, category: 'needs' },
+        { emoji: '👕', type: 'Clothing', budget: 0, spending: 0, category: 'wants' },
+        { emoji: '💡', type: 'Utilities', budget: 0, spending: 0, category: 'needs' },
+        { emoji: '🎓', type: 'Education', budget: 0, spending: 0, category: 'savings' }
+      ];
+  
+      // DOM elements
+      const expensesBody = document.getElementById('expenses-body');
+      const addExpenseBtn = document.getElementById('add-expense-btn');
+      const expenseModal = document.getElementById('expense-modal');
+      const closeModal = document.getElementById('close-modal');
+      const cancelBtn = document.getElementById('cancel-btn');
+      const expenseForm = document.getElementById('expense-form');
+      const modalTitle = document.getElementById('modal-title');
+      const emojiPreview = document.getElementById('emoji-preview');
+      const emojiPicker = document.getElementById('emoji-picker');
+      const expenseType = document.getElementById('expense-type');
+      const expenseBudget = document.getElementById('expense-budget');
+      const expenseSpending = document.getElementById('expense-spending');
+      const editIndex = document.getElementById('edit-index');
+      const totalBudgetEl = document.getElementById('total-budget');
+      const totalSpendingEl = document.getElementById('total-spending');
+      const totalSavingsEl = document.getElementById('total-savings');
+      const needsAmount = document.getElementById('needs-amount');
+      const wantsAmount = document.getElementById('wants-amount');
+      const savingsAmount = document.getElementById('savings-amount');
+  
+      // Initialize the app
+      document.addEventListener('DOMContentLoaded', () => {
+        renderExpenses();
+        renderEmojiPicker();
+        calculateTotals();
+        updateBudgetRule();
+      });
+  
+      // Render expenses table
+      function renderExpenses() {
+        expensesBody.innerHTML = '';
+        
+        expenses.forEach((expense, index) => {
+          const remaining = expense.budget - expense.spending;
+          const percentage = Math.min(Math.round((expense.spending / expense.budget) * 100), 100);
+          
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>
+              <div class="category-cell">
+                <div class="emoji-selector" data-index="${index}">${expense.emoji}</div>
+              </div>
+            </td>
+            <td class="editable" data-field="type" data-index="${index}">${expense.type}</td>
+            <td class="editable" data-field="budget" data-index="${index}">$${expense.budget}</td>
+            <td class="editable" data-field="spending" data-index="${index}">$${expense.spending}</td>
+            <td>$${remaining}</td>
+            <td>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: ${percentage}%"></div>
+              </div>
+              <small>${percentage}% used</small>
+            </td>
+          `;
+          expensesBody.appendChild(row);
+        });
+  
+        // Add event listeners to editable cells
+        document.querySelectorAll('.editable').forEach(cell => {
+          cell.addEventListener('click', handleCellEdit);
+        });
+  
+        // Add event listeners to emoji selectors
+        document.querySelectorAll('.emoji-selector').forEach(emoji => {
+          emoji.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openEditModal(parseInt(emoji.dataset.index));
+          });
+        });
+      }
+  
+      // Handle cell editing
+      function handleCellEdit(e) {
+        const cell = e.target;
+        const field = cell.dataset.field;
+        const index = parseInt(cell.dataset.index);
+        const currentValue = expenses[index][field];
+        
+        if (field === 'type') {
+          const input = document.createElement('input');
+          input.type = 'text';
+          input.value = currentValue;
+          input.className = 'editable-input';
+          cell.innerHTML = '';
+          cell.appendChild(input);
+          input.focus();
+          
+          input.addEventListener('blur', () => {
+            expenses[index][field] = input.value;
+            updateCategory(index);
+            renderExpenses();
+            calculateTotals();
+            updateBudgetRule();
+          });
+          
+          input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+              expenses[index][field] = input.value;
+              updateCategory(index);
+              renderExpenses();
+              calculateTotals();
+              updateBudgetRule();
+            }
+          });
+        } else {
+          const input = document.createElement('input');
+          input.type = 'number';
+          input.value = currentValue;
+          input.className = 'editable-input';
+          cell.innerHTML = '';
+          cell.appendChild(input);
+          input.focus();
+          
+          input.addEventListener('blur', () => {
+            expenses[index][field] = parseFloat(input.value) || 0;
+            renderExpenses();
+            calculateTotals();
+            updateBudgetRule();
+          });
+          
+          input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+              expenses[index][field] = parseFloat(input.value) || 0;
+              renderExpenses();
+              calculateTotals();
+              updateBudgetRule();
+            }
+          });
+        }
+      }
+  
+      // Update category based on type
+      function updateCategory(index) {
+        const type = expenses[index].type.toLowerCase();
+        if (type.includes('food') || type.includes('housing') || type.includes('transport') || type.includes('utilities')) {
+          expenses[index].category = 'needs';
+        } else if (type.includes('saving') || type.includes('invest') || type.includes('debt')) {
+          expenses[index].category = 'savings';
+        } else {
+          expenses[index].category = 'wants';
+        }
+      }
+  
+      // Render emoji picker
+      function renderEmojiPicker() {
+        emojiPicker.innerHTML = '';
+        categoryEmojis.forEach(emoji => {
+          const emojiOption = document.createElement('div');
+          emojiOption.className = 'emoji-option';
+          emojiOption.textContent = emoji;
+          emojiOption.addEventListener('click', () => {
+            emojiPreview.textContent = emoji;
+          });
+          emojiPicker.appendChild(emojiOption);
+        });
+      }
+  
+      // Calculate totals
+      function calculateTotals() {
+        const totalBudget = expenses.reduce((sum, item) => sum + item.budget, 0);
+        const totalSpending = expenses.reduce((sum, item) => sum + item.spending, 0);
+        const totalSavings = totalBudget - totalSpending;
+        
+        totalBudgetEl.textContent = `$${totalBudget}`;
+        totalSpendingEl.textContent = `$${totalSpending}`;
+        totalSavingsEl.textContent = `$${totalSavings}`;
+        
+        // Calculate percentage changes (random for demo)
+        const budgetChange = Math.floor(Math.random() * 10) + 1;
+        const spendingChange = Math.floor(Math.random() * 10) + 1;
+        const savingsChange = Math.floor(Math.random() * 10) + 1;
+        
+        document.getElementById('budget-change').textContent = `${budgetChange}%`;
+        document.getElementById('spending-change').textContent = `${spendingChange}%`;
+        document.getElementById('savings-change').textContent = `${savingsChange}%`;
+      }
+  
+      // Update 50/30/20 budget rule
+      function updateBudgetRule() {
+        const totalBudget = expenses.reduce((sum, item) => sum + item.budget, 0);
+        
+        const needs = expenses
+          .filter(item => item.category === 'needs')
+          .reduce((sum, item) => sum + item.budget, 0);
+        
+        const wants = expenses
+          .filter(item => item.category === 'wants')
+          .reduce((sum, item) => sum + item.budget, 0);
+        
+        const savings = expenses
+          .filter(item => item.category === 'savings')
+          .reduce((sum, item) => sum + item.budget, 0);
+        
+        needsAmount.textContent = `$${needs} (${Math.round((needs / totalBudget) * 100)}%)`;
+        wantsAmount.textContent = `$${wants} (${Math.round((wants / totalBudget) * 100)}%)`;
+        savingsAmount.textContent = `$${savings} (${Math.round((savings / totalBudget) * 100)}%)`;
+      }
+  
+      // Open modal for adding new expense
+      addExpenseBtn.addEventListener('click', () => {
+        modalTitle.textContent = 'Add New Expense';
+        editIndex.value = '';
+        emojiPreview.textContent = '🍔';
+        expenseType.value = '';
+        expenseBudget.value = '';
+        expenseSpending.value = '';
+        expenseModal.style.display = 'flex';
+      });
+  
+      // Open modal for editing existing expense
+      function openEditModal(index) {
+        modalTitle.textContent = 'Edit Expense';
+        editIndex.value = index;
+        const expense = expenses[index];
+        emojiPreview.textContent = expense.emoji;
+        expenseType.value = expense.type;
+        expenseBudget.value = expense.budget;
+        expenseSpending.value = expense.spending;
+        expenseModal.style.display = 'flex';
+      }
+  
+      // Close modal
+      function closeExpenseModal() {
+        expenseModal.style.display = 'none';
+      }
+  
+      closeModal.addEventListener('click', closeExpenseModal);
+      cancelBtn.addEventListener('click', closeExpenseModal);
+  
+      // Handle form submission
+      expenseForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        
+        const newExpense = {
+          emoji: emojiPreview.textContent,
+          type: expenseType.value,
+          budget: parseFloat(expenseBudget.value) || 0,
+          spending: parseFloat(expenseSpending.value) || 0,
+          category: 'wants' // Default, will be updated
+        };
+        
+        // Update category
+        updateCategory({ type: newExpense.type, category: '' });
+        newExpense.category = expenses.find(e => e.type === newExpense.type)?.category || 'wants';
+        
+        if (editIndex.value === '') {
+          // Add new expense
+          expenses.push(newExpense);
+        } else {
+          // Update existing expense
+          expenses[editIndex.value] = newExpense;
+        }
+        
+        renderExpenses();
+        calculateTotals();
+        updateBudgetRule();
+        closeExpenseModal();
+      });
+  
+      // Close modal when clicking outside
+      window.addEventListener('click', (e) => {
+        if (e.target === expenseModal) {
+          closeExpenseModal();
+        }
+      });
+    </script>
+  </body>
+  </html>
